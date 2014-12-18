@@ -3,6 +3,8 @@
 ## 系统架构
 
 	本使用kafka，spark，hbase开发日志分析系统。
+	
+![architecture](/docs/images/architecture.png "architecture")
 
 ### 软件模块
 
@@ -95,6 +97,8 @@ e)	注意事项
 服务器端部署.服务器端启动了一个httpserver，该server需要将jar包中的html页面解压出来，所以先解压，后运行程序
 
 	jar xvf recsys-1.0.jar
+
+
 
 
 
