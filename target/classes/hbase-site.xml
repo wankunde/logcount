@@ -1,0 +1,214 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Copyright 2010 The Apache Software Foundation
+ *
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+<property>
+  <name>hbase.cluster.distributed</name>
+  <value>true</value>
+</property>
+
+<property>
+  <name>hbase.rootdir</name>
+  <value>hdfs://dwztgame/hbase</value>
+</property>
+
+<property>
+  <name>dfs.datanode.max.xcievers</name>
+  <value>40960</value>
+</property>
+
+<property>
+  <name>hbase.zookeeper.quorum</name>
+  <value>node01.dw.ztgame.com:2181,node02.dw.ztgame.com:2181,node03.dw.ztgame.com:2181</value>
+</property>
+
+<property>
+  <name>hbase.regionserver.handler.count</name>
+  <value>200</value>
+  <description>Count of RPC Server instances spun up on RegionServers
+    Same property is used by the Master for count of master handlers.
+    Default is 10.</description>
+</property>
+                                           
+<property>
+  <name>hbase.regionserver.flushlogentries</name>
+  <value>500</value>
+  <description>Sync the HLog to HDFS when it has accumulated this many
+   entries. Default 1. Value is checked on every HLog.hflush</description>
+</property>
+                                   
+<property>
+  <name>hbase.regionserver.optionallogflushinterval</name>
+  <value>2000</value>
+  <description>Sync the HLog to the HDFS after this interval if it has not
+    accumulated enough entries to trigger a sync. Default 1 second. Units:
+    milliseconds. </description>
+</property>
+                                            
+<property>
+  <name>hbase.regionserver.thread.splitcompactcheckfrequency</name>
+  <value>600000</value>
+  <description>How often a region server runs the split/compaction check. </description>
+</property>
+
+<property>
+  <name>hbase.regions.slop</name>
+  <value>0</value>
+  <description>Rebalance if any regionserver has average + (average * slop) regions.
+         Default is 0% slop. </description>
+</property>
+                                      
+<property>
+  <name>hbase.server.thread.wakefrequency</name>
+  <value>5000</value>
+  <description>Time to sleep in between searches for work (in milliseconds).
+         Used as sleep interval by service threads such as log roller. </description>
+</property>
+                                   
+<property>
+  <name>hbase.hregion.memstore.flush.size</name>
+  <value>134217728</value>
+  <description>Memstore will be flushed to disk if size of the memstore
+    exceeds this number of bytes.  Value is checked by a thread that runs
+    every hbase.server.thread.wakefrequency.</description>
+</property>
+
+<property>
+  <name>hbase.hregion.memstore.block.multiplier</name>
+  <value>6</value>
+  <description>
+    Block updates if memstore has hbase.hregion.block.memstore
+    time hbase.hregion.flush.size bytes.  Useful preventing
+    runaway memstore during spikes in update traffic.  Without an
+    upper-bound, memstore fills such that when it flushes the
+    resultant flush files take a long time to compact or split, or
+    worse, we OOME. </description>
+</property>
+
+<property>
+  <name>hbase.hregion.memstore.mslab.enabled</name>
+  <value>true</value>
+  <description> Experimental: Enables the MemStore-Local Allocation Buffer,
+     a feature which works to prevent heap fragmentation under
+     heavy write loads. This can reduce the frequency of stop-the-world
+     GC pauses on large heaps.</description>
+</property>
+                                                                
+<property>
+  <name>hfile.block.cache.size</name>
+  <value>0.2</value>
+  <description> Percentage of maximum heap (-Xmx setting) to allocate to block cache
+     used by HFile/StoreFile. Default of 0.2 means allocate 20%.
+     Set to 0 to disable. </description>
+</property>
+
+<property>
+  <name>hbase.regionserver.nbreservationblocks</name>
+  <value>10</value>
+  <description>The number of resevoir blocks of memory release on
+    OOME so we can cleanup properly before server shutdown.</description>
+</property>
+
+<property>
+  <name>hbase.regionserver.global.memstore.upperLimit</name>
+  <value>0.5</value>
+  <description>Maximum size of all memstores in a region server before new
+   updates are blocked and flushes are forced. Defaults to 40% of heap</description>
+</property>
+
+<property>
+  <name>hbase.regionserver.global.memstore.lowerLimit</name>
+  <value>0.4</value>
+  <description>When memstores are being forced to flush to make room in
+   memory, keep flushing until we hit this mark. Defaults to 35% of heap.
+   This value equaggl to hbase.regionserver.global.memstore.upperLimit causes
+   the minimum possible flushing to occur when updates are blocked due to
+   memstore limiting.</description>
+</property>
+                     
+<property>
+  <name>hbase.hregion.max.filesize</name>
+  <value>2684354560</value>
+  <description>
+    Maximum HStoreFile size. If any one of a column families' HStoreFiles has
+    grown to exceed this value, the hosting HRegion is split in two.
+    Default: 256M.</description>
+</property>
+
+<property>
+  <name>hbase.snapshot.enabled</name>
+  <value>true</value>
+</property>
+
+<property>
+  <name>hbase.regionserver.regionSplitLimit</name>
+  <value>200</value>
+  <description>Limit for the number of regions after which no more region
+   splitting should take place. This is not a hard limit for the number of
+   regions but acts as a guideline for the regionserver to stop splitting after
+   a certain limit. Default is set to MAX_INT; i.e. do not block splitting.</description>
+</property>
+
+<property>
+  <name>hbase.hstore.compactionThreshold</name>
+  <value>4</value>
+  <description>If more than this number of HStoreFiles in any one HStore
+  (one HStoreFile is written per flush of memstore) then a compaction
+  is run to rewrite all HStoreFiles files as one.  Larger numbers
+  put off compaction but when it runs, it takes longer to complete. </description>
+</property>
+
+<property>
+  <name>hbase.hstore.blockingStoreFiles</name>
+  <value>12</value>
+  <description>If more than this number of StoreFiles in any one Store
+  (one StoreFile is written per flush of MemStore) then updates are
+   blocked for this HRegion until a compaction is completed, or
+   until hbase.hstore.blockingWaitTime has been exceeded. </description>
+</property>
+
+<property>
+  <name>hbase.hstore.compaction.max</name>
+  <value>6</value>
+  <description>Max number of HStoreFiles to compact per 'minor' compaction.</description>
+</property>
+
+<property>
+  <name>hbase.hregion.majorcompaction</name>
+  <value>172800000</value>
+  <description>The time (in miliseconds) between 'major' compactions of all
+   HStoreFiles in a region.  Default: 1 day.
+   .set to 0 to disable automated major compactions. </description>
+</property>
+
+<property>
+  <name>io.storefile.bloom.enabled</name>
+  <value>true</value>
+</property>
+
+<property>
+  <name>hbase.replication</name>
+  <value>true</value>
+</property>
+
+</configuration>
