@@ -3,19 +3,21 @@
 ## 系统架构
 
 	本使用kafka，spark，hbase开发日志分析系统。
+	
+![architecture](/docs/images/architecture.png "architecture")
 
 ### 软件模块
 
-	Kafka：作为日志事件的消息系统，具有分布式，可分区，可冗余的消息服务功能。
-	Spark：使用spark stream功能，实时分析消息系统中的数据，完成计算分析工作。
-	Hbase：做为后端存储，存储spark计算结构，供其他系统进行调用
+ * Kafka：作为日志事件的消息系统，具有分布式，可分区，可冗余的消息服务功能。
+ * Spark：使用spark stream功能，实时分析消息系统中的数据，完成计算分析工作。
+ * Hbase：做为后端存储，存储spark计算结构，供其他系统进行调用
  
 ## 环境部署
 
 ### 软件版本
 	
-	hadoop 版本 ： Hadoop相关软件如zookeeper、hadoop、hbase，使用的是cloudera的 cdh 5.2.0 版本。
-	Kafka ： 2.9.2-0.8.1.1
+ * hadoop 版本 ： Hadoop相关软件如zookeeper、hadoop、hbase，使用的是cloudera的 cdh 5.2.0 版本。
+ * Kafka ： 2.9.2-0.8.1.1
 	
 ### 软件安装
 
@@ -76,15 +78,19 @@ e)	注意事项
 
 ## 项目开发
 
-### Kafka
+### 程序部署目录
 
-程序依赖Jar包
-	客户端依赖 libs目录：
-		Logback包：logback-classic-1.1.2.jar，logback-core-1.1.2.jar
-		Kafka包（在kafka安装包lib目录中）
-			客户端配置文件 conf目录：
-				Logback：logback.xml
-				
+	/libs
+	* Logback包：logback-classic-1.1.2.jar，logback-core-1.1.2.jar
+	* Kafka包（在kafka安装包lib目录中）
+	/conf
+	* Logback：logback.xml
+	
+	/webapps/recsys
+	* index.html
+	/
+	* logcount-1.0.jar
+	
 ### Spark_Streaming 处理数据
 ### HBase 保存数据
 
@@ -96,5 +102,17 @@ e)	注意事项
 
 	jar xvf recsys-1.0.jar
 
+
+#### 系统运行
+
+客户端
+	
+> java -Dlogback.configurationFile=./conf/logback.xml -classpath .:libs/*:logcount-1.0.jar com.wankun.logcount.kafka.TailService dest.log
+
+ 服务端
+
+> spark-submit --class com.wankun.logcount.spark.LogStream --master spark://SparkMaster:7077 logcount-1.0.jar
+
+	
 
 
