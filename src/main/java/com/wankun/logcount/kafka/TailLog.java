@@ -1,10 +1,11 @@
 package com.wankun.logcount.kafka;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.nio.CharBuffer;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.charset.Charset;
 import java.util.concurrent.BlockingQueue;
 
 import org.slf4j.Logger;
@@ -15,10 +16,7 @@ public class TailLog extends Thread {
 
 	private BlockingQueue<String> queue;
 	private String logname;
-
-	private CharBuffer buf = CharBuffer.allocate(4096);
-
-	// private ByteBuffer buf = ByteBuffer.allocate(4096);
+	ByteBuffer buf = ByteBuffer.allocate(4096);
 
 	public TailLog(BlockingQueue<String> queue, String logname) {
 		this.queue = queue;
@@ -27,106 +25,65 @@ public class TailLog extends Thread {
 
 	@Override
 	public void run() {
-		BufferedReader reader = null;
+		RandomAccessFile rfile = null;
+		FileChannel ch = null;
 		try {
-			// Path logpath=Paths.get(logname);
-			// File posfile =
-			// logpath.getParent().resolve("."+logpath.getFileName()+".pos").toFile();
-			reader = new BufferedReader(new FileReader(new File(logname)));
+			rfile = new RandomAccessFile(new File(logname), "r");
+			ch = rfile.getChannel();
 
-			long filesize = 0;
+			int pos = 0;
+			int limit = 0;
 			while (true) {
-				// 判断文件是否已经切换
-				if (filesize > new File(logname).length()) {
-					logger.debug("filesize :{}     current system file size :{} . Log file switchover!", filesize,
-							new File(logname).length());
-					try {
-						// 在切换读文件前，读取文件全部内容
-						StringBuilder line = new StringBuilder();
-						while (reader.read(buf) > 0) {
-							buf.flip();
-							synchronized (buf) {
-								// 读buffer 并解析
-								for (int i = 0; i < buf.limit(); i++) {
-									char c = buf.get();
-									line.append(c);
-									if ((c == '\n') || (c == '\r'))
-										if (line.length() > 0) {
-											queue.put(line.toString());
-											line = new StringBuilder();
-										}
-								}
-							}
+				if (ch.read(buf) > 0) {
+					limit = buf.limit();
+					pos = 0;
+					buf.flip();
+					while (buf.hasRemaining()) {
+						byte b = buf.get();
+						if (b == '\n') {
+							int len = buf.position();
+							buf.position(pos);
+							buf.limit(len);
+							String line = Charset.forName("GBK").decode(buf.slice()).toString();
+							logger.debug("new line --> "+line);
+							queue.put(line);
+							pos = len;
+							buf.position(len);
+							buf.limit(limit);
 						}
-						queue.put(line.toString());
+					}
+					buf.position(pos);
+					buf.compact();
+				} else {
+					Thread.currentThread().sleep(1000);
+					// 文件已经切换
+					if (ch.position() > rfile.length()) {
+						String line = Charset.forName("GBK").decode(buf.slice()).toString();
+						queue.put(line);
 						buf.clear();
 
-						// 切换读文件
-						if (reader != null)
-							reader.close();
-						reader = new BufferedReader(new FileReader(new File(logname)));
-					} catch (Exception e) {
-						logger.error("文件 {} 不存在", logname, e);
-						Thread.currentThread().sleep(10000);
-						continue;
-					}
-				}
-
-				for (int retrys = 10; retrys > 0; retrys--) {
-					int bufread = reader.read(buf);
-					if (bufread < 0) {
-						if (retrys > 0)
-							Thread.currentThread().sleep(1000);
-						else {
-							// 等待10s后无新数据读出
-							synchronized (buf) {
-								// 等待 cachetime 秒后文件仍未写入
-								buf.flip();
-								char[] dst = new char[buf.length()];
-								buf.get(dst);
-								buf.clear();
-								queue.put(new String(dst));
-							}
-						}
-					} else {
-						filesize = new File(logname).length();
-						retrys = -1;
-
-						buf.flip();
-						synchronized (buf) {
-							// 读buffer 并解析
-							StringBuilder line = new StringBuilder();
-							for (int i = 0; i < buf.limit(); i++) {
-								char c = buf.get();
-								line.append(c);
-								if ((c == '\n') || (c == '\r'))
-									if (line.length() > 0) {
-										queue.put(line.toString());
-										line = new StringBuilder();
-									}
-							}
-							// 接着写不完整的数据
-							buf.compact();
-							if (line.length() > 0) {
-								buf.append(line);
-							}
-						}
-						break;
+						ch.close();
+						rfile.close();
+						rfile = new RandomAccessFile(new File(logname), "r");
+						ch = rfile.getChannel();
 					}
 				}
 			}
 		} catch (Exception e) {
 			logger.error("文件读取失败", e);
 		} finally {
-			if (reader != null) {
+			if (ch != null)
 				try {
-					reader.close();
+					ch.close();
 				} catch (IOException e) {
-					logger.error("文件 reader 关闭失败", e);
+					logger.error("文件 FileChannel ch 关闭失败", e);
 				}
-			}
+			if (rfile != null)
+				try {
+					rfile.close();
+				} catch (IOException e) {
+					logger.error("文件 RandomAccessFile rfile 关闭失败", e);
+				}
 		}
-
 	}
-
 }
