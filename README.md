@@ -72,8 +72,8 @@ This is another message
 This is a message
 This is another message
 
-e)	注意事项
-
+g. 注意事项
+	
 在开发程序的时候，producer客户端必须要配置上broker的host映射信息，即使你的程序中使用的都是ip地址。
 
 ## 项目开发
